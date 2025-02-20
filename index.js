@@ -10,10 +10,10 @@ app.use(express.json());
 // Create MySQL connection
 const connectDB = async () => {
   return await mysql.createConnection({
-    host: "localhost",
+    host: "mysql.railway.internal",
     user: "root", // Change to your MySQL username
-    password: "", // Change to your MySQL password
-    database: "predis_db", // Change to your database name
+    password: "QXfvkjtyLklzcFJUaWczJqkRTEDAeRtG", // Change to your MySQL password
+    database: "railway", // Change to your database name
   });
 };
 
