@@ -8,7 +8,6 @@ const app = express();
 app.use(express.json());
 
 // Create MySQL connection
-
 const connectDB = async () => {
   return await mysql.createConnection({
     host: "localhost",
@@ -27,30 +26,37 @@ app.post("/predis-webhook", async (req, res) => {
   }
 
   try {
-    // Insert or update the video record in MySQL
-    const [result] = await connectDB.execute(
+    const connection = await connectDB();
+
+    await connection.execute(
       `INSERT INTO predis_webhooks (post_id, video_url, status) 
-       VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE video_url = VALUES(video_url), status = VALUES(status)`,
+         VALUES (?, ?, ?) 
+         ON DUPLICATE KEY UPDATE video_url = VALUES(video_url), status = VALUES(status)`,
       [post_id, video_url, status]
     );
 
-    console.log("Webhook data saved:", result);
+    console.log("Webhook data saved:", post_id, status);
 
-    // If video is completed, download it
     if (video_url && status === "completed") {
-      const response = await axios({
-        url: video_url,
-        method: "GET",
-        responseType: "stream",
-      });
+      console.log("Downloading video from URL:", video_url);
 
-      const videoPath = path.join(__dirname, `videos/${post_id}.mp4`);
-      const writer = fs.createWriteStream(videoPath);
+      try {
+        const response = await axios({
+          url: video_url,
+          method: "GET",
+          responseType: "stream",
+        });
 
-      response.data.pipe(writer);
+        const videoPath = path.join(__dirname, `videos/${post_id}.mp4`);
+        const writer = fs.createWriteStream(videoPath);
 
-      writer.on("finish", () => console.log("Video downloaded:", videoPath));
-      writer.on("error", (err) => console.error("Download error:", err));
+        response.data.pipe(writer);
+
+        writer.on("finish", () => console.log("Video downloaded:", videoPath));
+        writer.on("error", (err) => console.error("Download error:", err));
+      } catch (downloadError) {
+        console.error("Error downloading video:", downloadError);
+      }
     }
 
     res.status(200).json({ message: "Webhook received successfully" });
@@ -59,5 +65,4 @@ app.post("/predis-webhook", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
 app.listen(3000, () => console.log("Webhook server running on port 3000"));
