@@ -3,9 +3,12 @@ const mysql = require("mysql2/promise");
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
+const cors = require("cors");
 
 const app = express();
 app.use(express.json());
+app.use(cors());
+app.options("*", cors());
 
 // MySQL Connection
 const connectDB = async () => {
