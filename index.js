@@ -13,10 +13,10 @@ app.options("*", cors());
 // MySQL Connection
 const connectDB = async () => {
   const connection = await mysql.createConnection({
-    host: "mysql.railway.internal",
+    host: "197.210.168.17",
     user: "root",
-    password: "QXfvkjtyLklzcFJUaWczJqkRTEDAeRtG",
-    database: "railway",
+    password: "",
+    database: "predis_db",
   });
   return connection;
 };
